@@ -4,11 +4,19 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.util.Scanner;
 
 
 public class Main {
 	
 	public static void main(String[] args) {
+		
+		Scanner sc = new Scanner(System.in);
+		
+		System.out.print("Inserisci stringa di ricerca: ");
+		String search = sc.nextLine();
+		
+		sc.close();
 		
 		final String url = "jdbc:mysql://localhost:3306/db-nations";
 		final String user = "root";
@@ -16,7 +24,8 @@ public class Main {
 		
 		try (Connection conn = DriverManager.getConnection(url, user, password)) {
 			
-			System.out.println("Connessione stabilita corretamente");
+			System.out.println("\n-----------------------------------------\n");
+			System.out.println("Connessione al database stabilita corretamente");
 			
 			final String sql = " SELECT c.name AS nome, c.country_id AS id, r.name AS nome_regione, c2.name AS nome_continente " +
 					" FROM countries c " +
@@ -24,10 +33,16 @@ public class Main {
 					" ON r.region_id = c.region_id " +
 					" JOIN continents c2 " +
 					" ON c2.continent_id = r.continent_id " +
+					"WHERE c.name LIKE ? " +
 					" ORDER BY nome ";
 			
 			PreparedStatement ps = conn.prepareStatement(sql);
+			ps.setString(1, "%" + search + "%");
+			
 			ResultSet results = ps.executeQuery();
+			
+			Boolean trovato = false;
+			int numeroRisultati = 0;
 			
 			System.out.println("\n-----------------------------------------\n");
 			
@@ -41,6 +56,16 @@ public class Main {
 				System.out.println("Nome: " + nome + " | " + "Id: " + id + " | " + "Regione: " + nomeRegione
 									+ " | " + "Continente: " + nomeContinente);
 				System.out.println("\n-----------------------------------------\n");
+				
+				trovato = true;
+				numeroRisultati++;
+				
+			}
+			
+			System.out.println("Numero risultati: " + numeroRisultati);
+			
+			if (!trovato) {
+				System.out.println("Nessun risultato trovato");
 			}
 		} catch (Exception e) {
 			
